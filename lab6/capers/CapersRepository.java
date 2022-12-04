@@ -56,6 +56,7 @@ public class CapersRepository {
         }catch (IOException e){System.err.println("An error occurred while writing to the story file: "
                 + e.getMessage());
         }
+        
 
     }
 
