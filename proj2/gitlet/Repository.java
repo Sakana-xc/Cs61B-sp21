@@ -1,7 +1,10 @@
 package gitlet;
 
 import java.io.File;
+import java.util.Map;
+
 import static gitlet.Utils.*;
+import static gitlet.additionUtils.exit;
 
 // TODO: any imports you need here
 
@@ -13,6 +16,7 @@ import static gitlet.Utils.*;
  */
 public class Repository {
     /**
+     *
      * TODO: add instance variables here.
      *
      * List all instance variables of the Repository class here with a useful
@@ -20,10 +24,25 @@ public class Repository {
      * variable is used. We've provided two examples for you.
      */
 
+
+
     /** The current working directory. */
     public static final File CWD = new File(System.getProperty("user.dir"));
     /** The .gitlet directory. */
     public static final File GITLET_DIR = join(CWD, ".gitlet");
 
+
     /* TODO: fill in the rest of this class. */
+
+    public void init(){
+        if(GITLET_DIR.exists() && GITLET_DIR.isDirectory()){
+            exit("A Gitlet version-control system already exists in the current directory");
+        }
+        //
+        GITLET_DIR.mkdir();
+        STAGING_DIR.mkdir();
+
+
+    }
+
 }

@@ -4,12 +4,20 @@
 
 ## Classes and Data Structures
 
-### Class 1
+### Repository
+It's gonna have all method Main.java will use;
+It will define each directory files may store
+.Gitlet directory 
+ -- .gitlet
+     --staging
+     --
+
 
 #### Fields
 
-1. Field 1
-2. Field 2
+1. 
+2. 
+3. 
 
 
 ### Class 2
