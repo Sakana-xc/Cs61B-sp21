@@ -1,5 +1,10 @@
 package gitlet;
 
+import java.io.File;
+import java.io.Serializable;
+
+import static gitlet.Utils.writeObject;
+
 public class additionUtils {
 
 
@@ -9,5 +14,6 @@ public class additionUtils {
         }
         System.exit(0);
     }
+
 
 }
