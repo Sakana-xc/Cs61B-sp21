@@ -28,6 +28,10 @@ public class Blob implements Serializable {
         return filename;
     }
 
+    public String getId(){
+        return this.id;
+    }
+
 
 
 

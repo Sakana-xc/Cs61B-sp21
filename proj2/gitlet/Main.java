@@ -27,12 +27,33 @@ public class Main  {
                 checkNumOfArgs(args,1);
                 Repository.init();
 
-
                 break;
             case "add":
                 // TODO: handle the `add [filename]` command
+                Repository.checkWorkingDirectory();
+                checkNumOfArgs(args,2);
+                new Repository().add(args[1]);
                 break;
             // TODO: FILL THE REST IN
+            case "commit":
+                Repository.checkWorkingDirectory();
+                checkNumOfArgs(args,2);
+                new Repository().commit(args[1]);
+                break;
+
+            case "rm":
+                Repository.checkWorkingDirectory();
+                checkNumOfArgs(args,2);
+                new Repository().rm(args[1]);
+                break;
+
+            case "log":
+                Repository.checkWorkingDirectory();
+                checkNumOfArgs(args,1);
+                new Repository().log();
+                break;
+
+
         }
     }
     private static void checkNumOfArgs(String [] args, Integer n){

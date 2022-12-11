@@ -1,5 +1,6 @@
 package gitlet;
 
+import java.io.File;
 import java.io.Serializable;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -23,11 +24,15 @@ public class Stage implements Serializable {
         added.remove(filename);
         removed.add(filename);
     }
-    public  HashMap<String, String> addition(){
+    public  HashMap<String, String> toBeAdded(){
         return added;
     }
 
-    public HashSet<String> removal() {
+    public HashSet<String> toBeRemoved() {
         return removed;
     }
+    public boolean isEmpty(){
+        return added.isEmpty() && removed.isEmpty();
+    }
+
 }

@@ -67,14 +67,14 @@ public class Commit implements Serializable {
 
         // add new blobs to the original HashMap;
 
-        for(Map.Entry<String,String> item : stage.addition().entrySet()){
+        for(Map.Entry<String,String> item : stage.toBeAdded().entrySet()){
             String filename = item.getKey();
             String blobId = item.getValue();
             trackedFiles.put(filename,blobId);
         }
         // for blobs no longer tracked,e.g.replaced by new version, remove
 
-        for(String filename: stage.removal()){
+        for(String filename: stage.toBeRemoved()){
             trackedFiles.remove(filename);
         }
     }
