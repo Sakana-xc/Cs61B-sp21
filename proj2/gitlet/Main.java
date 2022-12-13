@@ -53,6 +53,22 @@ public class Main  {
                 new Repository().log();
                 break;
 
+            case "global_log":
+                Repository.checkWorkingDirectory();
+                checkNumOfArgs(args,1);
+                new Repository().global_log();
+                break;
+            case "find":
+                Repository.checkWorkingDirectory();
+                checkNumOfArgs(args,2);
+                new Repository().find(args[1]);
+                break;
+            case "status":
+
+
+
+
+
 
         }
     }

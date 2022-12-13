@@ -6,12 +6,10 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import static gitlet.Utils.*;
-import static gitlet.additionUtils.exit;
-import static gitlet.additionUtils.save;
+import static gitlet.additionUtils.*;
 import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
 
 // TODO: any imports you need here
@@ -65,7 +63,7 @@ public class Repository {
     //configs date author merge strategy etc
     public static final File CONFIG = join(GITLET_DIR,"config");
 
-    public File STAGE;
+    public static File STAGE;
     public static final String defaultBranch = "master";
 
 
@@ -92,10 +90,10 @@ public class Repository {
          * make head point to master and master point to commit
          *  */
         Branch m = new Branch(defaultBranch,"");
-        File master = join(BRANCH_HEADS_DIR,defaultBranch);
+        File file = join(BRANCH_HEADS_DIR,defaultBranch);
         writeObject(HEAD,m);
         m.updateBranch();
-        writeContents(master,id);
+        writeContents(file,id);
 
     }
 
@@ -214,7 +212,122 @@ public class Repository {
 
     }
 
+    public void global_log() {
+        List<String> filenames = plainFilenamesIn(COMMIT_DIR);
+        for (String filename : filenames) {
+            Commit commit = getCommitUsingId(filename);
+            String logMessage = String.format("===\ncommit %s\nDate: %s\n%s\n\n",
+                    commit.getId(), commit.dateToString(), commit.getMessage());
+            System.out.println(logMessage);
+        }
+    }
+
+    public void find(String query) {
+        List<String> filenames = plainFilenamesIn(COMMIT_DIR);
+        for (String filename : filenames) {
+            Commit commit = getCommitUsingId(filename);
+            if (commit.getMessage().contains(query)) {
+                System.out.println(commit.getId());
+            }
+        }
+        exit("Found no commit with that message");
+    }
+
+    public void status() {
+        System.out.println("=== Branches ===");
+        List<String> branchNames = plainFilenamesIn(BRANCH_HEADS_DIR);
+        String currentBranch = readContentsAsString(HEAD);
+        for (String branchName : branchNames) {
+            if (branchName.equals(currentBranch)) {
+                System.out.println("*" + branchName);
+            } else {
+                System.out.println(branchName);
+            }
+        }
+        System.out.println("\n=== Staged Files ===");
+        Stage stage = readStage();
+        for (String filename : stage.toBeAdded().keySet()) {
+            System.out.println(filename);
+        }
+
+        System.out.println("\n=== Removed Files ===");
+        for (String filename : stage.toBeRemoved()) {
+            System.out.println(filename);
+        }
+
+        //extra credit
+        System.out.println("=== Modifications Not Staged For Commit ===\n");
+
+        System.out.println("=== Untracked Files ===\n");
+
+    }
+
+    public void checkOutHead(String filename){
+        Commit head = currCommit();
+        checkOutCommit(head,filename);
+
+    }
+
+    private void checkOutCommit(Commit commit, String filename){
+        String blobId = commit.getTrackedFiles().getOrDefault(filename,"");
+        checkOutBlob(blobId);
+    }
+    private void checkOutBlob(String blobId){
+        if (blobId.equals("")){
+            exit("File does not exist in that commit");
+        }
+        Blob blob = readBlob(blobId);
+        File file = join(CWD,blob.getFilename());
+        writeContents(file,blob.getContent());
+    }
+
+    public void checkOutSpecificCommit(String prefixId, String filename){
+        String commitId = getFullCommitID(prefixId);
+        if(commitId == null){
+            exit("No commit with that id exists");
+        }
+        Commit targetCommit = getCommitUsingId(commitId);
+        checkOutCommit(targetCommit,filename);
+    }
+    public void checkOutBranches(String branchName){
+        if(!Branch.exist(branchName)){
+            exit("No such branch exists");
+        }
+        Branch branch = Branch.readBranch(branchName);
+        File branchFile = join(BRANCH_HEADS_DIR,branchName);
+        Branch currBranch = Branch.readHEADAsBranch();
+        if(currBranch.branchName.equals(branchName)){
+            exit("No need to checkout the current branch");
+        }
+        Commit targetCommit = getCommitFromBranchFile(branchFile);
+        //check untracked file and would be overwritten by checkout branch
+        untrackedExit(targetCommit.getBlobs());
+        clearStage(readStage());
+        //overwrite CWD files
+        Commit curr = currCommit();
+
+        writeContents(HEAD, branchName);
+
+
+    }
+
+
     //Bunch of Helpers
+    public static List<String> getUntrackedFiles(){
+        List<String> untrackedFiles = new ArrayList<>();
+        List<String> StagedFileNames = readStage().getStagedFileName();
+        Map<String,String> headBlobs = currCommit().getBlobs();
+        for(String filename:plainFilenamesIn(CWD)){
+            if(!StagedFileNames.contains(filename)&&!headBlobs.containsKey(filename)){
+                untrackedFiles.add(filename);
+            }
+        }
+        Collections.sort(untrackedFiles);
+        return untrackedFiles;
+
+    }
+
+
     private static void writeCommit(Commit commit){
         File file = join(COMMIT_DIR,commit.getId());
         writeObject(file,commit);
@@ -228,7 +341,7 @@ public class Repository {
      * readObject(join(Commit_DIR,id))
      */
 
-    private Commit currCommit(){
+    private static Commit currCommit(){
         String branchName = readContentsAsString(HEAD);
         File branchFile = join(BRANCH_HEADS_DIR,branchName);
         Commit curr = getCommitFromBranchFile(branchFile);
@@ -239,12 +352,12 @@ public class Repository {
 
     }
 
-    private  Commit getCommitFromBranchFile(File file){
+    private static Commit getCommitFromBranchFile(File file){
         String commitId = readContentsAsString(file);
         return getCommitUsingId(commitId);
     }
 
-    private  Commit getCommitUsingId(String id){
+    private static Commit getCommitUsingId(String id){
         File file = join(COMMIT_DIR,id);
         if(id.equals("null") || !file.exists()){
             return null;
@@ -253,7 +366,7 @@ public class Repository {
 
     }
 
-    private Stage readStage(){
+    private static Stage readStage(){
         return readObject(STAGE, Stage.class);
     }
 
@@ -291,6 +404,27 @@ public class Repository {
        //     *  creating or overwriting it as needed.
        // branch store the latest commitID;
         writeContents(branch,Id);
+   }
+
+   private Blob readBlob(String blobId){
+        File file = join(BLOBS_DIR,blobId);
+        return readObject(file, Blob.class);
+   }
+
+   private String getFullCommitID(String prefixId){
+        if (prefixId.length()== UID_LENGTH){
+            return prefixId;
+        }
+        if(prefixId.length() < 6){
+            exit("should contain at least 6 characters");
+        }
+        String [] Ids = COMMIT_DIR.list();
+        for(String commitId:Ids){
+            if(commitId.startsWith(prefixId)){
+                return commitId;
+            }
+        }
+        return null;
    }
 
 

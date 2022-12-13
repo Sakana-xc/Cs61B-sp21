@@ -2,12 +2,13 @@ package gitlet;
 
 import java.io.File;
 import java.io.Serializable;
-import java.util.HashMap;
-import java.util.HashSet;
+import java.util.*;
 
 public class Stage implements Serializable {
     private HashMap<String,String> added;
     private HashSet<String> removed;
+
+
 
     public Stage(){
         added = new HashMap<>();
@@ -34,5 +35,13 @@ public class Stage implements Serializable {
     public boolean isEmpty(){
         return added.isEmpty() && removed.isEmpty();
     }
+
+    public  ArrayList<String> getStagedFileName(){
+        ArrayList<String> names = new ArrayList<>();
+        names.addAll(added.keySet());
+        names.addAll(removed);
+        return names;
+    }
+
 
 }

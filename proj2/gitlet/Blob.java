@@ -22,6 +22,8 @@ public class Blob implements Serializable {
         if (file.exists()){
             this.content = readContents(file);
             this.id = sha1(filename,content);}
+        else{this.content = null;
+            this.id = sha1(filename);}
     }
 
     public String getFilename(){
@@ -31,6 +33,15 @@ public class Blob implements Serializable {
     public String getId(){
         return this.id;
     }
+
+    public byte[] getContent(){
+        return this.content;
+    }
+
+    public File getFile(){
+        return this.file;
+    }
+
 
 
 

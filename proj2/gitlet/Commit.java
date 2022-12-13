@@ -110,6 +110,12 @@ public class Commit implements Serializable {
         return this.message;
     }
 
+    public HashMap<String,String> getTrackedFiles(){
+        return this.trackedFiles;
+    }
+
+
+
 
 
 
