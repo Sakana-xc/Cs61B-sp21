@@ -79,6 +79,7 @@ public class Repository {
                 BRANCH_HEADS_DIR,CONFIG);
         dirs.forEach(File::mkdir);
         writeObject(STAGE,new Stage());
+        writeContents(HEAD,defaultBranch);
 
         //create initial commit;
         Commit initialCommit = new Commit();
