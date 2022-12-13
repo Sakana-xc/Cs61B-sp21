@@ -1,7 +1,4 @@
 package gitlet;
-
-import org.eclipse.jetty.util.IO;
-
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -70,6 +67,8 @@ public class Repository {
 
 
 
+
+
     public static void init(){
         if(GITLET_DIR.exists() && GITLET_DIR.isDirectory()){
             exit("A Gitlet version-control system already exists in the current directory");
@@ -78,9 +77,7 @@ public class Repository {
         List<File> dirs = List.of(GITLET_DIR, REFS_DIR, STAGING_DIR, BLOBS_DIR, COMMIT_DIR,
                 BRANCH_HEADS_DIR,CONFIG);
         dirs.forEach(File::mkdir);
-        writeObject(STAGE,new Stage());
-        writeContents(HEAD,defaultBranch);
-
+      //  writeObject(STAGE,new Stage());
         //create initial commit;
         Commit initialCommit = new Commit();
         writeCommit(initialCommit);
@@ -344,7 +341,9 @@ public class Repository {
      */
 
     private static Commit currCommit(){
-        String branchName = readContentsAsString(HEAD);
+        Branch m = readObject(HEAD, Branch.class);
+        String branchName = m.branchName;
+       // String branchName = readContentsAsString(HEAD);
         File branchFile = join(BRANCH_HEADS_DIR,branchName);
         Commit curr = getCommitFromBranchFile(branchFile);
         if (curr.equals(null)){
