@@ -76,8 +76,9 @@ public class Repository {
         }
         //create directory;
         List<File> dirs = List.of(GITLET_DIR, REFS_DIR, STAGING_DIR, BLOBS_DIR, COMMIT_DIR,
-                BRANCH_HEADS_DIR,HEAD,CONFIG);
+                BRANCH_HEADS_DIR,CONFIG);
         dirs.forEach(File::mkdir);
+        writeObject(STAGE,new Stage());
 
         //create initial commit;
         Commit initialCommit = new Commit();

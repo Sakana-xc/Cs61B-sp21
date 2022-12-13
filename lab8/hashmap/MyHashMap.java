@@ -159,15 +159,14 @@ public class MyHashMap<K, V> implements Map61B<K, V> {
         Node node = getNode(key);
         if(node != null ){
             node.value = value;
-        } else{
-            node = createNode(key,value);
-            int bucketIndex = getIndex(key, buckets);
-            buckets[bucketIndex].add(node);
-            size += 1;
-            if (hasReachedMaxLoad()){
-                resize(buckets.length*2);
-            }
         }
+        else{node = createNode(key,value);
+        int bucketIndex = getIndex(key, buckets);
+        buckets[bucketIndex].add(node);
+        size += 1;
+        if (hasReachedMaxLoad()){
+            resize(buckets.length*2);
+        }}
 
     }
     private double getLoadFactor(){

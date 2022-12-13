@@ -38,6 +38,8 @@ public class Dog implements Serializable{
      * @param name Name of dog to load
      * @return Dog read from file
      */
+
+    //retrieve a  dog
     public static Dog fromFile(String name) {
         File fileToRead = join(DOG_FOLDER,name);
         Dog dog = readObject(fileToRead,Dog.class);

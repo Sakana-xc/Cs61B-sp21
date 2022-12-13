@@ -56,7 +56,7 @@ public class CapersRepository {
         }catch (IOException e){System.err.println("An error occurred while writing to the story file: "
                 + e.getMessage());
         }
-        
+
 
     }
 
@@ -80,8 +80,13 @@ public class CapersRepository {
      * @param name String name of the Dog whose birthday we're celebrating.
      */
     public static void celebrateBirthday(String name) {
+        /** Read -- fromFile()
+         * modify
+         * Write --saveDog()
+         */
+
         Dog dog = Dog.fromFile(name);
         dog.haveBirthday();
-        dog.saveDog(); /*update age */
+        dog.saveDog();
     }
 }
