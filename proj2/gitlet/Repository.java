@@ -200,14 +200,16 @@ public class Repository {
         if (commit== null){
             return;
         }
+        System.out.println("===");
         System.out.println("commit" + commit.getId());
         List<String> parents = commit.getParents();
-        if(parents.size() == 1){
-//            System.out.println("Merge: " + parents.get(0).substring(0, 7) +
-//                    " " + parents.get(1).substring(0, 7));
+        if(parents.size() == 2){
+            System.out.println("Merge: " + parents.get(0).substring(0, 7) +
+                    " " + parents.get(1).substring(0, 7));
         }
         System.out.println("Date:" + commit.dateToString());
         System.out.println( commit.getMessage());
+        System.out.println();
         log(getCommitUsingId(commit.getFirstParentsId()));
 
     }
@@ -216,7 +218,7 @@ public class Repository {
         List<String> filenames = plainFilenamesIn(COMMIT_DIR);
         for (String filename : filenames) {
             Commit commit = getCommitUsingId(filename);
-            String logMessage = String.format("===\ncommit %s\nDate: %s\n%s\n\n",
+            String logMessage = String.format("===\ncommit %s\nDate: %s\n%s\n",
                     commit.getId(), commit.dateToString(), commit.getMessage());
             System.out.println(logMessage);
         }
@@ -227,10 +229,11 @@ public class Repository {
         for (String filename : filenames) {
             Commit commit = getCommitUsingId(filename);
             if (commit.getMessage().contains(query)) {
-                System.out.println(commit.getId());
+                exit(commit.getId());
             }
         }
         exit("Found no commit with that message");
+
     }
 
     public void status() {

@@ -65,6 +65,11 @@ public class Main  {
                 new Repository().find(args[1]);
                 break;
             case "status":
+                Repository.checkWorkingDirectory();
+                checkNumOfArgs(args,1);
+                new Repository().status();
+                break;
+
 
 
 
