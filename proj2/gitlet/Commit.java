@@ -52,8 +52,7 @@ public class Commit implements Serializable {
         this.message = message;
         this.timeStamp = new Date();
 
-        //anything any change in commit will result in change in id
-        this.id = sha1(message,timeStamp.toString(),parents.toString(),trackedFiles.toString());
+
         /** for a commit maximum will encounter 2 parent merge,A List should serve enough
          it will take O(n) to track down a specific version of commits, use tree like structure
          can scale it down to O(logN) , may be a DAG */
@@ -64,7 +63,9 @@ public class Commit implements Serializable {
         }
         //use parent[0]'s tracked File
         this.trackedFiles = parents.get(0).getBlobs();
-
+        //anything any change in commit will result in change in id
+        this.id = sha1(message,timeStamp.toString(),parents.toString(),
+                trackedFiles.toString());
         // add new blobs to the original HashMap;
 
         for(Map.Entry<String,String> item : stage.toBeAdded().entrySet()){
@@ -93,10 +94,10 @@ public class Commit implements Serializable {
     }
 
     public String getFirstParentsId(){
-        if (parents == null) {
-            return "null";}
+        if (parents.isEmpty()) {
+            return "null";
+        }
         return parents.get(0);
-
     }
 
     public String dateToString (){

@@ -18,13 +18,6 @@ public class additionUtils {
         System.exit(0);
     }
 
-    public static void save(File file, Serializable object){
-        File dir = file.getParentFile();
-        if(!dir.exists()){
-            dir.mkdir();
-        }
-        writeObject(file,object);
-    }
 
     public static void untrackedExit(Map<String,String> blobs){
         List<String> untrackedFiles = Repository.getUntrackedFiles();

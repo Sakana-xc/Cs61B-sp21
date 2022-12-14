@@ -60,8 +60,7 @@ public class Repository {
     //configs date author merge strategy etc
     public static final File CONFIG = join(GITLET_DIR,"config");
 
-    public static File STAGE;
-    public static final String defaultBranch = "master";
+    public static final File STAGE = join(GITLET_DIR, "stage");
 
 
 
@@ -77,23 +76,22 @@ public class Repository {
         List<File> dirs = List.of(GITLET_DIR, REFS_DIR, STAGING_DIR, BLOBS_DIR, COMMIT_DIR,
                 BRANCH_HEADS_DIR,CONFIG);
         dirs.forEach(File::mkdir);
-      //  writeObject(STAGE,new Stage());
+        writeObject(STAGE,new Stage());
         //create initial commit;
         Commit initialCommit = new Commit();
         writeCommit(initialCommit);
         String id = initialCommit.getId();
 
         /**
-         * create master
-         * create path
          * make head point to master and master point to commit
+         * It's reasonal  to just write the name of the branch to HEAD, no need to
+         * fully serialize it
          *  */
-        Branch m = new Branch(defaultBranch,"");
-        File file = join(BRANCH_HEADS_DIR,defaultBranch);
-        writeObject(HEAD,m);
-        m.updateBranch();
-        writeContents(file,id);
 
+
+        writeContents(HEAD,"master");
+        File masterFile = join(BRANCH_HEADS_DIR,"master");
+        writeContents(masterFile,id);
     }
 
     public void add(String filename){
@@ -118,7 +116,7 @@ public class Repository {
                 //remove blobId(value) in stage
                 stage.toBeAdded().remove(stageAddedBlob);
                 stage.toBeRemoved().remove(filename);
-                save(STAGING_DIR,stage);
+                writeObject(STAGE,stage);
             }
         } else {
             //delete the original
@@ -127,7 +125,7 @@ public class Repository {
             }
             writeObject(join(STAGING_DIR,blobId),blob);
             stage.addFiles(filename,blobId);
-            save(STAGING_DIR,stage);
+            writeObject(STAGE,stage);
 
         }
 
@@ -185,6 +183,9 @@ public class Repository {
 
     }
 
+
+
+
     /**
      * Display list of commits and print Id,timestamp, message
      * we only care parent[0]
@@ -202,8 +203,8 @@ public class Repository {
         System.out.println("commit" + commit.getId());
         List<String> parents = commit.getParents();
         if(parents.size() == 1){
-            System.out.println("Merge: " + parents.get(0).substring(0, 7) +
-                    " " + parents.get(1).substring(0, 7));
+//            System.out.println("Merge: " + parents.get(0).substring(0, 7) +
+//                    " " + parents.get(1).substring(0, 7));
         }
         System.out.println("Date:" + commit.dateToString());
         System.out.println( commit.getMessage());
@@ -289,23 +290,24 @@ public class Repository {
         checkOutCommit(targetCommit,filename);
     }
     public void checkOutBranches(String branchName){
-        if(!Branch.exist(branchName)){
-            exit("No such branch exists");
-        }
-        Branch branch = Branch.readBranch(branchName);
-        File branchFile = join(BRANCH_HEADS_DIR,branchName);
-        Branch currBranch = Branch.readHEADAsBranch();
-        if(currBranch.branchName.equals(branchName)){
-            exit("No need to checkout the current branch");
-        }
-        Commit targetCommit = getCommitFromBranchFile(branchFile);
-        //check untracked file and would be overwritten by checkout branch
-        untrackedExit(targetCommit.getBlobs());
-        clearStage(readStage());
-        //overwrite CWD files
-        Commit curr = currCommit();
-
-        writeContents(HEAD, branchName);
+//        if(!Branch.exist(branchName)){
+//            exit("No such branch exists");
+//        }
+//        Branch branch = Branch.readBranch(branchName);
+//        File branchFile = join(BRANCH_HEADS_DIR,branchName);
+//        Branch currBranch = Branch.readHEADAsBranch();
+//        if(currBranch.branchName.equals(branchName)){
+//            exit("No need to checkout the current branch");
+//        }
+//        String commitId = readContentsAsString(),
+//        Commit targetCommit = getCommitFromBranchFile(branchFile);
+//        //check untracked file and would be overwritten by checkout branch
+//        untrackedExit(targetCommit.getBlobs());
+//        clearStage(readStage());
+//        //overwrite CWD files
+//        Commit curr = currCommit();
+//
+//        writeContents(HEAD, branchName);
 
 
     }
@@ -341,11 +343,10 @@ public class Repository {
      */
 
     private static Commit currCommit(){
-        Branch m = readObject(HEAD, Branch.class);
-        String branchName = m.branchName;
-       // String branchName = readContentsAsString(HEAD);
+        String branchName = readContentsAsString(HEAD);
         File branchFile = join(BRANCH_HEADS_DIR,branchName);
-        Commit curr = getCommitFromBranchFile(branchFile);
+        String commitId = readContentsAsString(branchFile);
+        Commit curr = getCommitUsingId(commitId);
         if (curr.equals(null)){
             exit("Can not find HEAD");
         }
