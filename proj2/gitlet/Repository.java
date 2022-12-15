@@ -128,6 +128,9 @@ public class Repository {
             writeObject(STAGE,stage);
 
         }
+        if(!blob.getFile().exists()){
+            writeObject(join(BLOBS_DIR,filename),blob);
+        }
 
     }
 
@@ -264,6 +267,13 @@ public class Repository {
 
     }
 
+    /**
+     * get the version of file from headCommit,
+     * update it to CWD, create or rewrite (write content)
+     * do not add it to stage
+     * @param filename
+     * There is an issue that it's not rewrite CWD file successfully
+     */
     public void checkOutHead(String filename){
         Commit head = currCommit();
         checkOutCommit(head,filename);

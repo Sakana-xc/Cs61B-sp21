@@ -54,7 +54,7 @@ public class Main  {
                 new Repository().log();
                 break;
 
-            case "global_log":
+            case "global-log":
                 Repository.checkWorkingDirectory();
                 checkNumOfArgs(args,1);
                 new Repository().global_log();
@@ -69,6 +69,18 @@ public class Main  {
                 checkNumOfArgs(args,1);
                 new Repository().status();
                 break;
+            case "check":
+                if(args.length<2 || args.length>4){
+                    exit("Incorrect operands");
+                }
+                Repository.checkWorkingDirectory();
+                if(args.length ==3){
+                    checkEqual(args[1],"--");
+                    new Repository().checkOutHead(args[2]);
+                }
+                break;
+
+
 
 
 
@@ -80,7 +92,12 @@ public class Main  {
     }
     private static void checkNumOfArgs(String [] args, Integer n){
         if(args.length != n){
-            exit("Incorrect operands.");
+            exit("Incorrect operands");
+        }
+    }
+    private static void checkEqual(String actual, String expected){
+        if(actual != expected){
+            exit("Incorrect operands");
         }
     }
 }
