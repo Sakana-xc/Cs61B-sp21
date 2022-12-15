@@ -201,15 +201,14 @@ public class Repository {
             return;
         }
         System.out.println("===");
-        System.out.println("commit" + commit.getId());
+        System.out.println("commit " + commit.getId());
         List<String> parents = commit.getParents();
         if(parents.size() == 2){
             System.out.println("Merge: " + parents.get(0).substring(0, 7) +
                     " " + parents.get(1).substring(0, 7));
         }
-        System.out.println("Date:" + commit.dateToString());
-        System.out.println( commit.getMessage());
-        System.out.println();
+        System.out.println("Date: " + commit.dateToString());
+        System.out.println( commit.getMessage()+"\n");
         log(getCommitUsingId(commit.getFirstParentsId()));
 
     }
@@ -239,9 +238,9 @@ public class Repository {
     public void status() {
         System.out.println("=== Branches ===");
         List<String> branchNames = plainFilenamesIn(BRANCH_HEADS_DIR);
-        String currentBranch = readContentsAsString(HEAD);
+        String currentBranchName = readContentsAsString(HEAD);
         for (String branchName : branchNames) {
-            if (branchName.equals(currentBranch)) {
+            if (branchName.equals(currentBranchName)) {
                 System.out.println("*" + branchName);
             } else {
                 System.out.println(branchName);
@@ -259,7 +258,7 @@ public class Repository {
         }
 
         //extra credit
-        System.out.println("=== Modifications Not Staged For Commit ===\n");
+        System.out.println("\n=== Modifications Not Staged For Commit ===\n");
 
         System.out.println("=== Untracked Files ===\n");
 
