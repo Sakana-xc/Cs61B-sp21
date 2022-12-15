@@ -69,7 +69,7 @@ public class Main  {
                 checkNumOfArgs(args,1);
                 new Repository().status();
                 break;
-            case "check":
+            case "checkout":
                 if(args.length<2 || args.length>4){
                     exit("Incorrect operands");
                 }
@@ -96,7 +96,7 @@ public class Main  {
         }
     }
     private static void checkEqual(String actual, String expected){
-        if(actual != expected){
+        if(!actual.equals(expected)){
             exit("Incorrect operands");
         }
     }

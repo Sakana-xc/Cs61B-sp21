@@ -128,9 +128,6 @@ public class Repository {
             writeObject(STAGE,stage);
 
         }
-        if(!blob.getFile().exists()){
-            writeObject(join(BLOBS_DIR,filename),blob);
-        }
 
     }
 
@@ -185,8 +182,6 @@ public class Repository {
         writeObject(STAGE,stage);
 
     }
-
-
 
 
     /**
@@ -282,14 +277,14 @@ public class Repository {
 
     private void checkOutCommit(Commit commit, String filename){
         String blobId = commit.getTrackedFiles().getOrDefault(filename,"");
-        checkOutBlob(blobId);
+        checkOutBlob(blobId,filename);
     }
-    private void checkOutBlob(String blobId){
+    private void checkOutBlob(String blobId,String filename){
         if (blobId.equals("")){
             exit("File does not exist in that commit");
         }
         Blob blob = readBlob(blobId);
-        File file = join(CWD,blob.getFilename());
+        File file = join(CWD,filename);
         writeContents(file,blob.getContent());
     }
 
@@ -399,6 +394,7 @@ public class Repository {
         for (File file : files) {
             Path source = file.toPath();
             try {
+                //
                 Files.move(source, targetDir.resolve(source.getFileName()), REPLACE_EXISTING);
             } catch (IOException e) {
                 e.printStackTrace();
