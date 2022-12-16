@@ -295,7 +295,7 @@ public class Repository {
         writeContents(file,blob.getContent());
     }
 
-    public void checkOutWizShortId(String prefixId, String filename){
+    public void checkOutWithPrefix(String prefixId, String filename){
         String commitId = getFullCommitID(prefixId);
         File file = join(COMMIT_DIR,commitId);
         if(!file.exists()){
@@ -336,6 +336,15 @@ public class Repository {
         for(String id:targetCommit.getTrackedFiles().values()){
             checkOutBlob(id);
         }
+    }
+
+    public void branch(String branchName){
+        File branchFile = join(BRANCH_HEADS_DIR,branchName);
+        List<String> names = plainFilenamesIn(BRANCH_HEADS_DIR);
+        if(names.contains(branchName)){
+            exit("A branch with that name already exists.");
+        }
+        writeContents(branchFile,currCommit().getId());
     }
 
 

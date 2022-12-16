@@ -81,13 +81,17 @@ public class Main  {
 
                 if(args.length == 4){
                     checkEqual(args[2],"--");
-                    new Repository().checkOutWizShortId(args[1],args[3]);
+                    new Repository().checkOutWithPrefix(args[1],args[3]);
                 }
                 if(args.length ==2){
                     new Repository().checkOutBranches(args[1]);
                 }
                 break;
-
+            case "branch":
+                Repository.checkWorkingDirectory();
+                checkNumOfArgs(args,2);
+                new Repository().branch(args[1]);
+                break;
 
         }
     }
