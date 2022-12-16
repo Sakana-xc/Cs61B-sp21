@@ -223,14 +223,18 @@ public class Repository {
     }
 
     public void find(String query) {
+        StringBuilder Id = new StringBuilder();
         List<String> filenames = plainFilenamesIn(COMMIT_DIR);
         for (String filename : filenames) {
             Commit commit = getCommitUsingId(filename);
             if (commit.getMessage().contains(query)) {
-                exit(commit.getId());
+                Id.append(commit.getId() + "\n");
             }
         }
-        exit("Found no commit with that message");
+        if(Id.length() == 0){
+            exit("Found no commit with that message.");
+        }
+        System.out.println(Id);
 
     }
 
