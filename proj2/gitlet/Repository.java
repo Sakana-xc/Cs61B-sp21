@@ -390,20 +390,9 @@ public class Repository {
         if (files == null) {
             return;
         }
-        Path targetDir = BLOBS_DIR.toPath();
-        for (File file : files) {
-            Path source = file.toPath();
-            try {
-                //
-                Files.move(source, targetDir.resolve(source.getFileName()), REPLACE_EXISTING);
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
+        moveFromStageToBlobs(files);
         Stage newStage = new Stage();
         writeObject(STAGE,newStage);
-
-
 
     }
 
@@ -435,6 +424,19 @@ public class Repository {
             }
         }
         return null;
+   }
+
+   private void moveFromStageToBlobs(File[]files){
+    Path targetDir = BLOBS_DIR.toPath();
+    for(File file:files) {
+        Path source = file.toPath();
+        Path target = targetDir.resolve(source.getFileName());
+        try{
+            Files.move(source,target,REPLACE_EXISTING);
+        }catch (IOException e){
+            e.printStackTrace();}
+        }
+
    }
 
 
