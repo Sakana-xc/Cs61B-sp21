@@ -103,7 +103,7 @@ public class Repository {
         Stage stage = readStage();
         Blob blob = new Blob(filename,CWD);
         String blobId = blob.getId();
-        String currTrackBlob = curr.getBlobs().getOrDefault(filename,"");
+        String currTrackBlob = curr.getTrackedFiles().getOrDefault(filename,"");
         String stageAddedBlob = stage.toBeAdded().getOrDefault(filename,"");
 
         /**
@@ -143,7 +143,7 @@ public class Repository {
         }
         Commit commit = new Commit(message,List.of(curr),stage);
         //The staging area is cleared after a commit
-        clearStage();
+        clearStage(readStage());
         writeCommit(commit);
         String commitId = commit.getId();
         //branch file updated with the latest commitID
@@ -160,23 +160,24 @@ public class Repository {
      */
     public void rm(String filename){
         File file = join(CWD,filename);
-        String blobId = new Blob(filename,CWD).getId();
+//        String blobId = new Blob(filename,CWD).getId();
+        Blob blob = new Blob(filename,CWD);
+        String blobId = blob.getId();
         Commit curr = currCommit();
         Stage stage = readStage();
-        String currTrackBlob = curr.getBlobs().getOrDefault(filename,"");
+        String currTrackBlob = curr.getTrackedFiles().getOrDefault(filename,"");
         String stageAddedBlob = stage.toBeAdded().getOrDefault(filename,"");
         if(currTrackBlob.equals("")&& stageAddedBlob.equals("")){
             exit("No reason to remove the file");
         }
-        //UnStage the file if it is currently staged for addition.
         if(!stageAddedBlob.equals("")){
             stage.toBeAdded().remove(filename);
-        // stage it for removal
         } else{
             stage.toBeRemoved().add(filename);
         }
         //hashMap<String, String> trackedFiles, key filename, value blobId
-        if(blobId.equals(currTrackBlob)){
+        //if they share the same name, but different contents, the id gonna be different
+        if(blob.getContent()!=null && blobId.equals(currTrackBlob)){
             restrictedDelete(file);
         }
         writeObject(STAGE,stage);
@@ -277,18 +278,20 @@ public class Repository {
 
     private void checkOutCommit(Commit commit, String filename){
         String blobId = commit.getTrackedFiles().getOrDefault(filename,"");
-        checkOutBlob(blobId,filename);
+        checkOutBlob(blobId);
     }
-    private void checkOutBlob(String blobId,String filename){
+    private void checkOutBlob(String blobId){
         if (blobId.equals("")){
             exit("File does not exist in that commit");
         }
         Blob blob = readBlob(blobId);
+        String filename = blob.getFilename();
         File file = join(CWD,filename);
+        //create or overWrite currFile with blob's Content
         writeContents(file,blob.getContent());
     }
 
-    public void checkOutSpecificCommit(String prefixId, String filename){
+    public void checkOutWizShortId(String prefixId, String filename){
         String commitId = getFullCommitID(prefixId);
         if(commitId == null){
             exit("No commit with that id exists");
@@ -297,38 +300,51 @@ public class Repository {
         checkOutCommit(targetCommit,filename);
     }
     public void checkOutBranches(String branchName){
-//        if(!Branch.exist(branchName)){
-//            exit("No such branch exists");
-//        }
-//        Branch branch = Branch.readBranch(branchName);
-//        File branchFile = join(BRANCH_HEADS_DIR,branchName);
-//        Branch currBranch = Branch.readHEADAsBranch();
-//        if(currBranch.branchName.equals(branchName)){
-//            exit("No need to checkout the current branch");
-//        }
-//        String commitId = readContentsAsString(),
-//        Commit targetCommit = getCommitFromBranchFile(branchFile);
-//        //check untracked file and would be overwritten by checkout branch
-//        untrackedExit(targetCommit.getBlobs());
-//        clearStage(readStage());
-//        //overwrite CWD files
-//        Commit curr = currCommit();
-//
-//        writeContents(HEAD, branchName);
-
-
+        File branchFile = join(BRANCH_HEADS_DIR,branchName);
+        String targetCommitId = readContentsAsString(branchFile);
+        //failure case
+        if(!branchFile.exists()){
+            exit("No such branch exists");
+        }
+        if(branchName.equals(readContentsAsString(HEAD))){
+            exit("No need to checkout the current branch");
+        }
+        Commit targetCommit = getCommitUsingId(targetCommitId);
+        //if these are untracked files,means in CWD,different from targetCommit,not tracked in curr
+        List<String> files =getUntrackedFiles();
+        if(!files.isEmpty()){
+            /**if untracked files has different blobId with given commit in target branch,
+             * it will get overwritten;
+             */
+            for(String name:files){
+                String blobId = new Blob(name,CWD).getId();
+                String targetId = targetCommit.getTrackedFiles().getOrDefault(name,"");
+                if(!blobId.equals(targetId)){
+                    exit("There is an untracked file in the way; delete it, or add and commit it first");
+                }
+            }
+        }
+        /**
+         * get all blobId from targetCommit,
+         * checkoutBlob
+         */
+        for(String id:targetCommit.getTrackedFiles().values()){
+            checkOutBlob(id);
+        }
     }
 
 
     //Bunch of Helpers
     public static List<String> getUntrackedFiles(){
         List<String> untrackedFiles = new ArrayList<>();
+        //All file in toBeAdded && toBeRemoved
         List<String> StagedFileNames = readStage().getStagedFileName();
-        Map<String,String> headBlobs = currCommit().getBlobs();
-        for(String filename:plainFilenamesIn(CWD)){
-            if(!StagedFileNames.contains(filename)&&!headBlobs.containsKey(filename)){
-                untrackedFiles.add(filename);
+        Map<String,String> headBlobs = currCommit().getTrackedFiles();
+        for(String name:plainFilenamesIn(CWD)){
+            if(!StagedFileNames.contains(name) && !headBlobs.containsKey(name)){
+                untrackedFiles.add(name);
             }
+
         }
         Collections.sort(untrackedFiles);
         return untrackedFiles;
@@ -361,10 +377,6 @@ public class Repository {
 
     }
 
-    private static Commit getCommitFromBranchFile(File file){
-        String commitId = readContentsAsString(file);
-        return getCommitUsingId(commitId);
-    }
 
     private static Commit getCommitUsingId(String id){
         File file = join(COMMIT_DIR,id);
@@ -385,7 +397,7 @@ public class Repository {
         }
     }
 
-    private void clearStage() {
+    private void clearStage(Stage stage) {
         File[] files = STAGING_DIR.listFiles();
         if (files == null) {
             return;

@@ -78,14 +78,15 @@ public class Main  {
                     checkEqual(args[1],"--");
                     new Repository().checkOutHead(args[2]);
                 }
+
+                if(args.length == 4){
+                    checkEqual(args[2],"--");
+                    new Repository().checkOutWizShortId(args[1],args[3]);
+                }
+                if(args.length ==2){
+                    new Repository().checkOutBranches(args[1]);
+                }
                 break;
-
-
-
-
-
-
-
 
 
         }

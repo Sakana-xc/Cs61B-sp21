@@ -62,7 +62,7 @@ public class Commit implements Serializable {
             this.parents.add(id);
         }
         //use parent[0]'s tracked File
-        this.trackedFiles = parents.get(0).getBlobs();
+        this.trackedFiles = parents.get(0).getTrackedFiles();
         //anything any change in commit will result in change in id
         this.id = sha1(message,timeStamp.toString(),parents.toString(),
                 trackedFiles.toString());
@@ -81,10 +81,6 @@ public class Commit implements Serializable {
     }
     public String getId(){
         return id;
-    }
-
-    public HashMap<String,String> getBlobs(){
-        return this.trackedFiles;
     }
 
     // helpers for log
