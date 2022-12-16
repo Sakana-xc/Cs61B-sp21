@@ -143,7 +143,7 @@ public class Repository {
         }
         Commit commit = new Commit(message,List.of(curr),stage);
         //The staging area is cleared after a commit
-        clearStage(stage);
+        clearStage();
         writeCommit(commit);
         String commitId = commit.getId();
         //branch file updated with the latest commitID
@@ -385,7 +385,7 @@ public class Repository {
         }
     }
 
-    private void clearStage(Stage stage) {
+    private void clearStage() {
         File[] files = STAGING_DIR.listFiles();
         if (files == null) {
             return;
