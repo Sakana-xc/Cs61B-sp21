@@ -344,7 +344,10 @@ public class Repository {
         if(names.contains(branchName)){
             exit("A branch with that name already exists.");
         }
-        writeContents(branchFile,currCommit().getId());
+        String headBranchName = readContentsAsString(HEAD);
+        File file = join(BRANCH_HEADS_DIR,headBranchName);
+        String commitId = readContentsAsString(file);
+        writeContents(branchFile,commitId);
     }
 
 
