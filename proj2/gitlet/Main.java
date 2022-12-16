@@ -93,12 +93,12 @@ public class Main  {
     }
     private static void checkNumOfArgs(String [] args, Integer n){
         if(args.length != n){
-            exit("Incorrect operands");
+            exit("Incorrect operands.");
         }
     }
     private static void checkEqual(String actual, String expected){
         if(!actual.equals(expected)){
-            exit("Incorrect operands");
+            exit("Incorrect operands.");
         }
     }
 }

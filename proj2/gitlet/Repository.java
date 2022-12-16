@@ -282,7 +282,7 @@ public class Repository {
     }
     private void checkOutBlob(String blobId){
         if (blobId.equals("")){
-            exit("File does not exist in that commit");
+            exit("File does not exist in that commit.");
         }
         Blob blob = readBlob(blobId);
         String filename = blob.getFilename();
@@ -293,22 +293,23 @@ public class Repository {
 
     public void checkOutWizShortId(String prefixId, String filename){
         String commitId = getFullCommitID(prefixId);
-        if(commitId == null){
-            exit("No commit with that id exists");
+        File file = join(COMMIT_DIR,commitId);
+        if(!file.exists()){
+            exit("No commit with that id exists.");
         }
-        Commit targetCommit = getCommitUsingId(commitId);
+        Commit targetCommit = readObject(file, Commit.class);
         checkOutCommit(targetCommit,filename);
     }
     public void checkOutBranches(String branchName){
         File branchFile = join(BRANCH_HEADS_DIR,branchName);
-        String targetCommitId = readContentsAsString(branchFile);
         //failure case
         if(!branchFile.exists()){
-            exit("No such branch exists");
+            exit("No such branch exists.");
         }
         if(branchName.equals(readContentsAsString(HEAD))){
-            exit("No need to checkout the current branch");
+            exit("No need to checkout the current branch.");
         }
+        String targetCommitId = readContentsAsString(branchFile);
         Commit targetCommit = getCommitUsingId(targetCommitId);
         //if these are untracked files,means in CWD,different from targetCommit,not tracked in curr
         List<String> files =getUntrackedFiles();
@@ -320,7 +321,7 @@ public class Repository {
                 String blobId = new Blob(name,CWD).getId();
                 String targetId = targetCommit.getTrackedFiles().getOrDefault(name,"");
                 if(!blobId.equals(targetId)){
-                    exit("There is an untracked file in the way; delete it, or add and commit it first");
+                    exit("There is an untracked file in the way; delete it, or add and commit it first.");
                 }
             }
         }
@@ -371,7 +372,7 @@ public class Repository {
         String commitId = readContentsAsString(branchFile);
         Commit curr = getCommitUsingId(commitId);
         if (curr.equals(null)){
-            exit("Can not find HEAD");
+            exit("Can not find HEAD.");
         }
         return curr;
 
@@ -393,7 +394,7 @@ public class Repository {
 
     public static void checkWorkingDirectory(){
         if(!GITLET_DIR.isDirectory()){
-            exit("Not in an initialized Gitlet directory");
+            exit("Not in an initialized Gitlet directory.");
         }
     }
 
@@ -450,6 +451,8 @@ public class Repository {
         }
 
    }
+
+
 
 
 
