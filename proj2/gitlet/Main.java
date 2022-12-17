@@ -92,6 +92,17 @@ public class Main  {
                 checkNumOfArgs(args,2);
                 new Repository().branch(args[1]);
                 break;
+            case "rm-branch":
+                Repository.checkWorkingDirectory();
+                checkNumOfArgs(args,2);
+                new Repository().rm_branch(args[1]);
+                break;
+            case "reset":
+                Repository.checkWorkingDirectory();
+                checkNumOfArgs(args,2);
+                new Repository().reset(args[1]);
+                break;
+
 
         }
     }

@@ -1,9 +1,13 @@
 package gitlet;
 import java.io.File;
+import java.io.FilenameFilter;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
 
 import static gitlet.Utils.*;
 import static gitlet.additionUtils.*;
@@ -333,9 +337,12 @@ public class Repository {
          * get all blobId from targetCommit,
          * checkoutBlob
          */
-        for(String id:targetCommit.getTrackedFiles().values()){
-            checkOutBlob(id);
+        resetSpace();
+        for(Map.Entry<String,String> pairs: targetCommit.getTrackedFiles().entrySet()){
+            String blobId = pairs.getValue();
+            checkOutBlob(blobId);
         }
+        writeContents(HEAD,branchName);
     }
 
     public void branch(String branchName){
@@ -348,6 +355,43 @@ public class Repository {
         File file = join(BRANCH_HEADS_DIR,headBranchName);
         String commitId = readContentsAsString(file);
         writeContents(branchFile,commitId);
+    }
+
+    public void rm_branch(String branchName){
+        File branchFile = join(BRANCH_HEADS_DIR,branchName);
+        if(!branchFile.exists()){
+            exit("A branch with that name does not exist.");
+        }
+        if(branchName.equals(readContentsAsString(HEAD))){
+            exit("Cannot remove the current branch.");
+        }
+        branchFile.delete();
+    }
+
+    public void reset(String commitId){
+        File file = join(COMMIT_DIR,commitId);
+        if(!file.exists()){
+            exit("No commit with that id exists.");
+        }
+        Commit commit = getCommitUsingId(commitId);
+        List<String> untrackedFiles = getUntrackedFiles();
+        if(!untrackedFiles.isEmpty()){
+            for(String name:untrackedFiles){
+                String blobId = new Blob(name,CWD).getId();
+                String targetId = commit.getTrackedFiles().getOrDefault(name,"");
+                if(!blobId.equals(targetId)){
+                    exit("There is an untracked file in the way; delete it, or add and commit it first.");
+                }
+            }
+        }
+        resetSpace();
+        for(Map.Entry<String,String> pairs: commit.getTrackedFiles().entrySet()){
+            String blobId = pairs.getValue();
+            checkOutBlob(blobId);
+        }
+        clearStage(readStage());
+        String currBranchName = readContentsAsString(HEAD);
+        writeContents(join(BRANCH_HEADS_DIR,currBranchName),commitId);
     }
 
 
@@ -467,6 +511,31 @@ public class Repository {
         }
 
    }
+
+   private void resetSpace(){
+       File[] files = CWD.listFiles(gitletFliter);
+       for (File file : files) {
+           burn(file);
+       }
+   }
+
+   private void burn(File file){
+        if(file.isDirectory()) {
+            for (File things : file.listFiles()) {
+                burn(things);
+            }
+        }
+        file.delete();
+   }
+
+
+    private FilenameFilter gitletFliter = new FilenameFilter() {
+        @Override
+        public boolean accept(File dir, String name) {
+            return !name.equals(".gitlet");
+        }
+    };
+
 
 
 
