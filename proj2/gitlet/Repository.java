@@ -1,7 +1,6 @@
 package gitlet;
 
 import java.io.File;
-import java.io.FilenameFilter;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -60,7 +59,7 @@ public class Repository {
     //branch directory
     public static final File REFS_DIR = join(GITLET_DIR, "refs");
     public static final File BRANCH_HEADS_DIR = join(REFS_DIR, "heads");
-    public static final File REMOTE_DIR = join(REFS_DIR, "remote");
+
 
     //head current branch name default master
     public static final File HEAD = join(GITLET_DIR, "HEAD");
@@ -213,7 +212,7 @@ public class Repository {
 
     }
 
-    public void global_log() {
+    public void global_Log() {
         List<String> filenames = plainFilenamesIn(COMMIT_DIR);
         for (String filename : filenames) {
             Commit commit = getCommitUsingId(filename);
@@ -383,18 +382,18 @@ public class Repository {
         writeContents(join(BRANCH_HEADS_DIR, currBranchName), commitId);
     }
 
-    public void merge (String givenBranchName){
+    public void merge(String givenBranchName){
         Stage stage = readStage();
         String headBranchName = readContentsAsString(HEAD);
-        if(!stage.isEmpty()){
+        if (!stage.isEmpty()){
             exit("You have uncommitted changes.");
         }
 
         File branchFile = join(BRANCH_HEADS_DIR,givenBranchName);
-        if(!branchFile.exists()){
+        if (!branchFile.exists()){
             exit("A branch with that name does not exist.");
         }
-        if(givenBranchName.equals(headBranchName)){
+        if (givenBranchName.equals(headBranchName)) {
             exit("Cannot merge a branch with itself.");
         }
         String otherCommitId = readContentsAsString(branchFile);
@@ -413,9 +412,9 @@ public class Repository {
 
     //Bunch of Helpers
 
-    private void commit(String message, List<Commit> parent){
+    private void commit(String message, List<Commit> parent) {
         Stage stage = readStage();
-        if(stage.isEmpty()){
+        if (stage.isEmpty()){
             exit("No changes added to the commit.");
         }
         Commit commit = new Commit(message,parent,stage);
@@ -426,12 +425,12 @@ public class Repository {
 
     }
 
-    private void merge(Commit currentCommit, Commit otherCommit, Commit LCA,String givenBranchName){
+    private void merge(Commit currentCommit, Commit otherCommit, Commit LCA,String givenBranchName) {
 
-        if(LCA.getId().equals(otherCommit.getId())){
+        if (LCA.getId().equals(otherCommit.getId())) {
             exit("Given branch is an ancestor of the current branch.");
         }
-        if(LCA.getId().equals(currentCommit.getId())){
+        if (LCA.getId().equals(currentCommit.getId())) {
             checkOutBranches(givenBranchName);
             exit("Current branch fast-forwarded.");
         }
@@ -445,7 +444,7 @@ public class Repository {
         List<String> overwrite = new LinkedList<>();
         List<String> conflicted = new LinkedList<>();
 
-        for(String name:fileNames) {
+        for (String name:fileNames) {
             String currBlobId = currentCommit.getTrackedFiles().getOrDefault(name, "");
             String otherBlobId = otherCommit.getTrackedFiles().getOrDefault(name, "");
             String ancestorId = LCA.getTrackedFiles().getOrDefault(name, "");
@@ -453,10 +452,8 @@ public class Repository {
             if (ancestorId.equals(currBlobId) && !ancestorId.equals(otherBlobId)) {
                 overwrite.add(otherBlobId);
             }
-            if (ancestorId.equals(otherBlobId) && !ancestorId.equals(currBlobId)) {
-                continue;
-            }
-            if (currBlobId.equals(otherBlobId)) {
+
+            if (currBlobId.equals(otherBlobId) || ancestorId.equals(otherBlobId)) {
                 continue;
             }
             if (ancestorId.equals("")) {
@@ -464,22 +461,22 @@ public class Repository {
                         currentCommit.getTrackedFiles().keySet().contains(name)) {
                     continue;
                 }
-                if(!currentCommit.getTrackedFiles().keySet().contains(name) &&
+                 if (!currentCommit.getTrackedFiles().keySet().contains(name) &&
                         otherCommit.getTrackedFiles().keySet().contains(name)) {
                     overwrite.add(otherBlobId);
                 }
 
             }
-            if(LCA.getTrackedFiles().keySet().contains(name)) {
-                if(ancestorId.equals(currBlobId)&& otherBlobId.equals("")){
+            if (LCA.getTrackedFiles().keySet().contains(name)) {
+                if (ancestorId.equals(currBlobId)&& otherBlobId.equals("")) {
                     remove.add(name);
                 }
-                if(otherBlobId.equals(ancestorId)&& currBlobId.equals("")){
+                if (otherBlobId.equals(ancestorId)&& currBlobId.equals("")) {
                     continue;
                 }
             }
-            if(!ancestorId.equals(currBlobId) && ! ancestorId.equals(otherBlobId)){
-                if(!currBlobId.equals(otherBlobId)){
+            if (!ancestorId.equals(currBlobId) && ! ancestorId.equals(otherBlobId)) {
+                if (!currBlobId.equals(otherBlobId)) {
                     conflicted.add(name);
                 }
             }
@@ -489,16 +486,16 @@ public class Repository {
     }
 
     private void merge(List<String> remove, List<String> overwrite,List<String> conflicted,
-                       Commit currCommit, Commit otherCommit){
+                       Commit currCommit, Commit otherCommit) {
         List<String> untrackedFiles = getUntrackedFiles();
-        for(String name: untrackedFiles){
-            if(remove.contains(name) || overwrite.contains(name) ||
+        for (String name: untrackedFiles) {
+            if (remove.contains(name) || overwrite.contains(name) ||
             conflicted.contains(name)){
                 exit("There is an untracked file in the way; delete it, or add and commit it first.");
             }
         }
-        if(!overwrite.isEmpty()){
-            for (String id: overwrite){
+        if (!overwrite.isEmpty()) {
+            for (String id: overwrite) {
                 Blob blob = readBlob(id);
                 checkOutBlob(id);
                 String fileName = blob.getFilename();
@@ -506,23 +503,23 @@ public class Repository {
             }
         }
 
-        if(!remove.isEmpty()) {
+        if (!remove.isEmpty()) {
             for (String name : remove) {
                 rm(name);
             }
         }
 
-        if(!conflicted.isEmpty()){
-            for(String name: conflicted){
+        if (!conflicted.isEmpty()){
+            for (String name: conflicted){
                 String currBlobId = currCommit.getTrackedFiles().getOrDefault(name,"");
                 String otherBlobId = otherCommit.getTrackedFiles().getOrDefault(name,"");
                 String currContent = readBlobAsString(currBlobId);
                 String otherContent = readBlobAsString(otherBlobId);
                 System.out.println("<<<<<<< HEAD");
                 System.out.println(currContent);
-                System.out.println("========");
+                System.out.print("========");
                 System.out.println(otherContent);
-                System.out.println(">>>>>>>");
+                System.out.print(">>>>>>>");
                 exit("Encountered a merge conflict.");
 
             }
@@ -530,15 +527,15 @@ public class Repository {
 
     }
 
-    private String readBlobAsString(String blobId){
-        if (blobId.equals("")){
+    private String readBlobAsString(String blobId) {
+        if (blobId.equals("")) {
             return "";
         }
         return readBlob(blobId).getContentAsString();
     }
 
 
-    public static void CheckExitErrorFileWillBeOverWritten(Commit commit){
+    public static void CheckExitErrorFileWillBeOverWritten(Commit commit) {
         List<String> files = getUntrackedFiles();
         if (!files.isEmpty()) {
             /**if untracked files has different blobId with given commit in target branch,
@@ -569,17 +566,17 @@ public class Repository {
 
     }
 
-    private Commit findLatestCommonAncestor(Commit head,Commit other){
+    private Commit findLatestCommonAncestor(Commit head,Commit other) {
         HashSet<String> headAncestor = getHeadAncestor(head);
         Queue<Commit> otherQueue = new LinkedList<>();
         otherQueue.add(other);
-        while(!otherQueue.isEmpty()){
+        while (!otherQueue.isEmpty()) {
             Commit otherCommit = otherQueue.poll();
-            if(headAncestor.contains(otherCommit.getId())){
+            if (headAncestor.contains(otherCommit.getId())) {
                 return otherCommit;
             }
-            if(!otherCommit.getParents().isEmpty()){
-                for(String id: otherCommit.getParents()){
+            if (!otherCommit.getParents().isEmpty()) {
+                for (String id: otherCommit.getParents()) {
                     otherQueue.add(getCommitUsingId(id));
                 }
             }
@@ -587,15 +584,15 @@ public class Repository {
         return null;
     }
 
-    private HashSet<String> getHeadAncestor(Commit head){
+    private HashSet<String> getHeadAncestor(Commit head) {
         HashSet<String> ancestor = new HashSet<>();
         Queue<Commit> queue = new LinkedList<>();
         queue.add(head);
 
-        while(!queue.isEmpty()){
+        while (!queue.isEmpty()) {
             Commit commit = queue.poll();
-            if(!ancestor.contains(commit.getId()) && !commit.getParents().isEmpty()){
-                for(String parentId: commit.getParents() ){
+            if (!ancestor.contains(commit.getId()) && !commit.getParents().isEmpty()) {
+                for (String parentId: commit.getParents()) {
                     queue.add(getCommitUsingId(parentId));
                 }
             }

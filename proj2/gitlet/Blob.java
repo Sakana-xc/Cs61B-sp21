@@ -7,48 +7,46 @@ import java.nio.charset.StandardCharsets;
 import static gitlet.Utils.*;
 
 public class Blob implements Serializable {
-    private  byte[] content;
+    private byte[] content;
 
-    private  String id;
+    private String id;
 
-    private  String  filename;
+    private String filename;
 
     private File file;
 
 
-
-    public Blob(String filename,File CWD){
+    public Blob(String filename, File CWD) {
         this.filename = filename;
-        this.file = join(CWD,filename);
-        if (file.exists()){
+        this.file = join(CWD, filename);
+        if (file.exists()) {
             this.content = readContents(file);
-            this.id = sha1(filename,content);}
-        else{this.content = null;
-            this.id = sha1(filename);}
+            this.id = sha1(filename, content);
+        } else {
+            this.content = null;
+            this.id = sha1(filename);
+        }
     }
 
-    public String getFilename(){
+    public String getFilename() {
         return filename;
     }
 
-    public String getId(){
+    public String getId() {
         return this.id;
     }
 
-    public byte[] getContent(){
+    public byte[] getContent() {
         return this.content;
     }
 
-    public File getFile(){
+    public File getFile() {
         return this.file;
     }
 
-    public String getContentAsString(){
+    public String getContentAsString() {
         return new String(content, StandardCharsets.UTF_8);
     }
-
-
-
 
 
 }

@@ -1,7 +1,5 @@
 package gitlet;
 
-import java.io.File;
-
 import static gitlet.additionUtils.exit;
 
 
@@ -16,18 +14,17 @@ public class Main  {
     public static void main(String[] args) {
 
         // TODO: what if args is empty?
-        if(args.length == 0){
-           exit("Please enter a command");
+        if (args.length == 0) {
+            exit("Please enter a command");
         }
         String firstArg = args[0];
 
-        switch(firstArg) {
+        switch (firstArg) {
             case "init":
                 // TODO: handle the `init` command
                 // get the current working dir;
                 checkNumOfArgs(args,1);
                 Repository.init();
-
                 break;
             case "add":
                 // TODO: handle the `add [filename]` command
@@ -54,10 +51,10 @@ public class Main  {
                 new Repository().log();
                 break;
 
-            case "global-log":
+            case "global-Log":
                 Repository.checkWorkingDirectory();
                 checkNumOfArgs(args,1);
-                new Repository().global_log();
+                new Repository().global_Log();
                 break;
             case "find":
                 Repository.checkWorkingDirectory();
@@ -70,20 +67,20 @@ public class Main  {
                 new Repository().status();
                 break;
             case "checkout":
-                if(args.length<2 || args.length>4){
+                if (args.length < 2 || args.length > 4){
                     exit("Incorrect operands");
                 }
                 Repository.checkWorkingDirectory();
-                if(args.length ==3){
+                if (args.length == 3){
                     checkEqual(args[1],"--");
                     new Repository().checkOutHead(args[2]);
                 }
 
-                if(args.length == 4){
+                if (args.length == 4) {
                     checkEqual(args[2],"--");
                     new Repository().checkOutWithPrefix(args[1],args[3]);
                 }
-                if(args.length ==2){
+                if (args.length == 2) {
                     new Repository().checkOutBranches(args[1]);
                 }
                 break;
@@ -107,8 +104,6 @@ public class Main  {
                 checkNumOfArgs(args,2);
                 new Repository().merge(args[1]);
                 break;
-                
-
         }
     }
     private static void checkNumOfArgs(String [] args, Integer n){
@@ -117,7 +112,7 @@ public class Main  {
         }
     }
     private static void checkEqual(String actual, String expected){
-        if(!actual.equals(expected)){
+        if (!actual.equals(expected)) {
             exit("Incorrect operands.");
         }
     }

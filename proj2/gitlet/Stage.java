@@ -1,31 +1,31 @@
 package gitlet;
 
-import java.io.File;
+
 import java.io.Serializable;
 import java.util.*;
 
 public class Stage implements Serializable {
-    private HashMap<String,String> added;
+    private HashMap<String, String> added;
     private HashSet<String> removed;
 
 
 
-    public Stage(){
+    public Stage() {
         added = new HashMap<>();
         removed = new HashSet<>();
     }
 
-    public void addFiles(String filename, String blobId){
-        added.put(filename,blobId);
+    public void addFiles(String filename, String blobId) {
+        added.put(filename, blobId);
         removed.remove(filename);
 
     }
 
-    public void removeFiles(String filename){
+    public void removeFiles(String filename) {
         added.remove(filename);
         removed.add(filename);
     }
-    public  HashMap<String, String> toBeAdded(){
+    public  HashMap<String, String> toBeAdded() {
         return added;
     }
 
@@ -36,7 +36,7 @@ public class Stage implements Serializable {
         return added.isEmpty() && removed.isEmpty();
     }
 
-    public  ArrayList<String> getStagedFileName(){
+    public  ArrayList<String> getStagedFileName() {
         ArrayList<String> names = new ArrayList<>();
         names.addAll(added.keySet());
         names.addAll(removed);

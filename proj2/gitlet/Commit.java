@@ -2,8 +2,6 @@ package gitlet;
 
 // TODO: any imports you need here
 
-import javax.xml.crypto.Data;
-import java.io.File;
 import java.io.Serializable;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
@@ -32,7 +30,7 @@ public class Commit implements Serializable {
     private  String message;
     private Date timeStamp;
     private List<String> parents;
-    private HashMap<String,String> trackedFiles;
+    private HashMap<String, String> trackedFiles;
     private String id;
 
 
@@ -41,14 +39,14 @@ public class Commit implements Serializable {
 
     public Commit()  {
         this.message = "initial commit";
-        this.timeStamp= new Date(0);
+        this.timeStamp = new Date(0);
         this.parents = new ArrayList<>();
         this.trackedFiles = new HashMap<>();
         this.id = sha1(message,timeStamp.toString());
 
     }
 
-    public Commit(String message,List<Commit> parents, Stage stage){
+    public Commit(String message,List<Commit> parents, Stage stage) {
         this.message = message;
         this.timeStamp = new Date();
 
@@ -68,18 +66,18 @@ public class Commit implements Serializable {
                 trackedFiles.toString());
         // add new blobs to the original HashMap;
 
-        for(Map.Entry<String,String> item : stage.toBeAdded().entrySet()){
+        for (Map.Entry<String,String> item : stage.toBeAdded().entrySet()) {
             String filename = item.getKey();
             String blobId = item.getValue();
             trackedFiles.put(filename,blobId);
         }
         // for blobs no longer tracked,e.g.replaced by new version, remove
 
-        for(String filename: stage.toBeRemoved()){
+        for (String filename: stage.toBeRemoved()) {
             trackedFiles.remove(filename);
         }
     }
-    public String getId(){
+    public String getId() {
         return id;
     }
 
@@ -89,14 +87,14 @@ public class Commit implements Serializable {
         return parents;
     }
 
-    public String getFirstParentsId(){
+    public String getFirstParentsId() {
         if (parents.isEmpty()) {
             return "null";
         }
         return parents.get(0);
     }
 
-    public String dateToString (){
+    public String dateToString () {
         DateFormat dateFormatted = new SimpleDateFormat(
                 "EEE MMM dd HH:mm:ss yyyy Z", Locale.ENGLISH);
         return dateFormatted.format(timeStamp);
@@ -107,7 +105,7 @@ public class Commit implements Serializable {
         return this.message;
     }
 
-    public HashMap<String,String> getTrackedFiles(){
+    public HashMap<String, String> getTrackedFiles() {
         return this.trackedFiles;
     }
 
