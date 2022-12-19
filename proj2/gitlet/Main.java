@@ -102,7 +102,12 @@ public class Main  {
                 checkNumOfArgs(args,2);
                 new Repository().reset(args[1]);
                 break;
-
+            case "merge":
+                Repository.checkWorkingDirectory();
+                checkNumOfArgs(args,2);
+                new Repository().merge(args[1]);
+                break;
+                
 
         }
     }

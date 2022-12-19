@@ -5,10 +5,7 @@ import java.io.FilenameFilter;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import static gitlet.Utils.*;
 import static gitlet.additionUtils.*;
@@ -67,8 +64,6 @@ public class Repository {
 
     //head current branch name default master
     public static final File HEAD = join(GITLET_DIR, "HEAD");
-    //configs date author merge strategy etc
-    public static final File CONFIG = join(GITLET_DIR, "config");
 
     public static final File STAGE = join(GITLET_DIR, "stage");
 
@@ -79,7 +74,7 @@ public class Repository {
         }
         //create directory;
         List<File> dirs = List.of(GITLET_DIR, REFS_DIR, STAGING_DIR, BLOBS_DIR, COMMIT_DIR,
-                BRANCH_HEADS_DIR, CONFIG);
+                BRANCH_HEADS_DIR);
         dirs.forEach(File::mkdir);
         writeObject(STAGE, new Stage());
         //create initial commit;
@@ -324,19 +319,7 @@ public class Repository {
         String targetCommitId = readContentsAsString(branchFile);
         Commit targetCommit = getCommitUsingId(targetCommitId);
         //if these are untracked files,means in CWD,different from targetCommit,not tracked in curr
-        List<String> files = getUntrackedFiles();
-        if (!files.isEmpty()) {
-            /**if untracked files has different blobId with given commit in target branch,
-             * it will get overwritten;
-             */
-            for (String name : files) {
-                String blobId = new Blob(name, CWD).getId();
-                String targetId = targetCommit.getTrackedFiles().getOrDefault(name, "");
-                if (!blobId.equals(targetId)) {
-                    exit("There is an untracked file in the way; delete it, or add and commit it first.");
-                }
-            }
-        }
+       CheckExitErrorFileWillBeOverWritten(targetCommit);
         /**
          * get all blobId from targetCommit,
          * checkoutBlob
@@ -377,17 +360,19 @@ public class Repository {
         if (!file.exists()) {
             exit("No commit with that id exists.");
         }
+//        Commit commit = getCommitUsingId(commitId);
+//        List<String> untrackedFiles = getUntrackedFiles();
+//        if (!untrackedFiles.isEmpty()) {
+//            for (String name : untrackedFiles) {
+//                String blobId = new Blob(name, CWD).getId();
+//                String targetId = commit.getTrackedFiles().getOrDefault(name, "");
+//                if (!blobId.equals(targetId)) {
+//                    exit("There is an untracked file in the way; delete it, or add and commit it first.");
+//                }
+//            }
+//        }
         Commit commit = getCommitUsingId(commitId);
-        List<String> untrackedFiles = getUntrackedFiles();
-        if (!untrackedFiles.isEmpty()) {
-            for (String name : untrackedFiles) {
-                String blobId = new Blob(name, CWD).getId();
-                String targetId = commit.getTrackedFiles().getOrDefault(name, "");
-                if (!blobId.equals(targetId)) {
-                    exit("There is an untracked file in the way; delete it, or add and commit it first.");
-                }
-            }
-        }
+        CheckExitErrorFileWillBeOverWritten(commit);
         resetSpace();
         for (Map.Entry<String, String> pairs : commit.getTrackedFiles().entrySet()) {
             String blobId = pairs.getValue();
@@ -398,8 +383,177 @@ public class Repository {
         writeContents(join(BRANCH_HEADS_DIR, currBranchName), commitId);
     }
 
+    public void merge (String givenBranchName){
+        Stage stage = readStage();
+        String headBranchName = readContentsAsString(HEAD);
+        if(!stage.isEmpty()){
+            exit("You have uncommitted changes.");
+        }
+
+        File branchFile = join(BRANCH_HEADS_DIR,givenBranchName);
+        if(!branchFile.exists()){
+            exit("A branch with that name does not exist.");
+        }
+        if(givenBranchName.equals(headBranchName)){
+            exit("Cannot merge a branch with itself.");
+        }
+        String otherCommitId = readContentsAsString(branchFile);
+        Commit curr = currCommit();
+        Commit otherCommit = getCommitUsingId(otherCommitId);
+        Commit LCA = findLatestCommonAncestor(curr,otherCommit);
+
+        merge(curr,otherCommit,LCA,givenBranchName);
+        String message = "Merged" + givenBranchName + "into" + headBranchName +".";
+        List<Commit > parent = List.of(curr,otherCommit);
+        commit(message,parent);
+
+
+    }
+
 
     //Bunch of Helpers
+
+    private void commit(String message, List<Commit> parent){
+        Stage stage = readStage();
+        if(stage.isEmpty()){
+            exit("No changes added to the commit.");
+        }
+        Commit commit = new Commit(message,parent,stage);
+        clearStage(stage);
+        writeCommit(commit);
+        String commitId = commit.getId();
+        writeCommitToBranch(commitId);
+
+    }
+
+    private void merge(Commit currentCommit, Commit otherCommit, Commit LCA,String givenBranchName){
+
+        if(LCA.getId().equals(otherCommit.getId())){
+            exit("Given branch is an ancestor of the current branch.");
+        }
+        if(LCA.getId().equals(currentCommit.getId())){
+            checkOutBranches(givenBranchName);
+            exit("Current branch fast-forwarded.");
+        }
+        Set<String> fileNames = new HashSet<>();
+        fileNames.addAll(currentCommit.getTrackedFiles().keySet());
+        fileNames.addAll(otherCommit.getTrackedFiles().keySet());
+        fileNames.addAll(LCA.getTrackedFiles().keySet());
+
+        //container
+        List<String> remove = new LinkedList<>();
+        List<String> overwrite = new LinkedList<>();
+        List<String> conflicted = new LinkedList<>();
+
+        for(String name:fileNames) {
+            String currBlobId = currentCommit.getTrackedFiles().getOrDefault(name, "");
+            String otherBlobId = otherCommit.getTrackedFiles().getOrDefault(name, "");
+            String ancestorId = LCA.getTrackedFiles().getOrDefault(name, "");
+
+            if (ancestorId.equals(currBlobId) && !ancestorId.equals(otherBlobId)) {
+                overwrite.add(otherBlobId);
+            }
+            if (ancestorId.equals(otherBlobId) && !ancestorId.equals(currBlobId)) {
+                continue;
+            }
+            if (currBlobId.equals(otherBlobId)) {
+                continue;
+            }
+            if (ancestorId.equals("")) {
+                if (!otherCommit.getTrackedFiles().keySet().contains(name) &&
+                        currentCommit.getTrackedFiles().keySet().contains(name)) {
+                    continue;
+                }
+                if(!currentCommit.getTrackedFiles().keySet().contains(name) &&
+                        otherCommit.getTrackedFiles().keySet().contains(name)) {
+                    overwrite.add(otherBlobId);
+                }
+
+            }
+            if(LCA.getTrackedFiles().keySet().contains(name)) {
+                if(ancestorId.equals(currBlobId)&& otherBlobId.equals("")){
+                    remove.add(name);
+                }
+                if(otherBlobId.equals(ancestorId)&& currBlobId.equals("")){
+                    continue;
+                }
+            }
+            if(!ancestorId.equals(currBlobId) && ! ancestorId.equals(otherBlobId)){
+                if(!currBlobId.equals(otherBlobId)){
+                    conflicted.add(name);
+                }
+            }
+
+        }
+        merge(remove,overwrite,conflicted,otherCommit,currentCommit);
+    }
+
+    private void merge(List<String> remove, List<String> overwrite,List<String> conflicted,
+                       Commit currCommit, Commit otherCommit){
+        List<String> untrackedFiles = getUntrackedFiles();
+        for(String name: untrackedFiles){
+            if(remove.contains(name) || overwrite.contains(name) ||
+            conflicted.contains(name)){
+                exit("There is an untracked file in the way; delete it, or add and commit it first.");
+            }
+        }
+        if(!overwrite.isEmpty()){
+            for (String id: overwrite){
+                Blob blob = readBlob(id);
+                checkOutBlob(id);
+                String fileName = blob.getFilename();
+                add(fileName);
+            }
+        }
+
+        if(!remove.isEmpty()) {
+            for (String name : remove) {
+                rm(name);
+            }
+        }
+
+        if(!conflicted.isEmpty()){
+            for(String name: conflicted){
+                String currBlobId = currCommit.getTrackedFiles().getOrDefault(name,"");
+                String otherBlobId = otherCommit.getTrackedFiles().getOrDefault(name,"");
+                String currContent = readBlobAsString(currBlobId);
+                String otherContent = readBlobAsString(otherBlobId);
+                System.out.println("<<<<<<< HEAD");
+                System.out.println(currContent);
+                System.out.println("========");
+                System.out.println(otherContent);
+                System.out.println(">>>>>>>");
+                exit("Encountered a merge conflict.");
+
+            }
+        }
+
+    }
+
+    private String readBlobAsString(String blobId){
+        if (blobId.equals("")){
+            return "";
+        }
+        return readBlob(blobId).getContentAsString();
+    }
+
+
+    public static void CheckExitErrorFileWillBeOverWritten(Commit commit){
+        List<String> files = getUntrackedFiles();
+        if (!files.isEmpty()) {
+            /**if untracked files has different blobId with given commit in target branch,
+             * it will get overwritten;
+             */
+            for (String name : files) {
+                String blobId = new Blob(name, CWD).getId();
+                String targetId = commit.getTrackedFiles().getOrDefault(name, "");
+                if (!blobId.equals(targetId)) {
+                    exit("There is an untracked file in the way; delete it, or add and commit it first.");
+                }
+            }
+        }
+    }
+
     public static List<String> getUntrackedFiles() {
         List<String> untrackedFiles = new ArrayList<>();
         //All file in toBeAdded && toBeRemoved
@@ -412,6 +566,42 @@ public class Repository {
         }
         Collections.sort(untrackedFiles);
         return untrackedFiles;
+
+    }
+
+    private Commit findLatestCommonAncestor(Commit head,Commit other){
+        HashSet<String> headAncestor = getHeadAncestor(head);
+        Queue<Commit> otherQueue = new LinkedList<>();
+        otherQueue.add(other);
+        while(!otherQueue.isEmpty()){
+            Commit otherCommit = otherQueue.poll();
+            if(headAncestor.contains(otherCommit.getId())){
+                return otherCommit;
+            }
+            if(!otherCommit.getParents().isEmpty()){
+                for(String id: otherCommit.getParents()){
+                    otherQueue.add(getCommitUsingId(id));
+                }
+            }
+        }
+        return null;
+    }
+
+    private HashSet<String> getHeadAncestor(Commit head){
+        HashSet<String> ancestor = new HashSet<>();
+        Queue<Commit> queue = new LinkedList<>();
+        queue.add(head);
+
+        while(!queue.isEmpty()){
+            Commit commit = queue.poll();
+            if(!ancestor.contains(commit.getId()) && !commit.getParents().isEmpty()){
+                for(String parentId: commit.getParents() ){
+                    queue.add(getCommitUsingId(parentId));
+                }
+            }
+            ancestor.add(commit.getId());
+        }
+        return ancestor;
 
     }
 
