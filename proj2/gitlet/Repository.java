@@ -441,7 +441,7 @@ public class Repository {
             if (splitId.equals("")) {
                 if (currBlobId.equals("") ) {
                     if (!otherBlobId.equals("")) {
-                        overwrite.add(name);
+                        overwrite.add(otherBlobId);
                     }
                 }
             }
@@ -452,7 +452,7 @@ public class Repository {
                         remove.add(name);
                     }
                     else {
-                        overwrite.add(name);
+                        overwrite.add(otherBlobId);
                     }
                 }
 //            if (splitId.equals(otherBlobId) && !splitId.equals(currBlobId)) {
@@ -472,16 +472,18 @@ public class Repository {
                        Commit currCommit, Commit otherCommit) {
         List<String> untrackedFiles = getUntrackedFiles();
         for (String name: untrackedFiles) {
-            if (remove.contains(name) || overwrite.contains(name) ||
+            String blobId = otherCommit.getTrackedFiles().getOrDefault(name,"");
+            if (remove.contains(name) || overwrite.contains(blobId) ||
             conflicted.contains(name)) {
                 exit("There is an untracked file in the way; delete it, or add and commit it first.");
             }
         }
         if (!overwrite.isEmpty()) {
-            for (String name: overwrite) {
-                String otherBlobId = otherCommit.getTrackedFiles().getOrDefault(name,"");
-                checkOutBlob(otherBlobId);
-                add(name);
+            for (String id: overwrite) {
+                Blob blob = readBlob(id);
+                checkOutBlob(id);
+                String fileName = blob.getFilename();
+                add(fileName);
             }
         }
 
@@ -497,17 +499,10 @@ public class Repository {
                 String otherBlobId = otherCommit.getTrackedFiles().getOrDefault(name,"");
                 String currContent = readBlobAsString(currBlobId);
                 String otherContent = readBlobAsString(otherBlobId);
-//                System.out.println("<<<<<<< HEAD");
-//                System.out.println(currContent);
-//                System.out.print("========");
-//                System.out.println(otherContent);
-//                System.out.print(">>>>>>>");
-                //modify the file to have merge conflict information
                 String conflictedContent = getConflictContent(currContent,otherContent);
                 File file = join(CWD,name);
                 writeContents(file,conflictedContent);
                 exit("Encountered a merge conflict.");
-
             }
         }
 
@@ -515,9 +510,10 @@ public class Repository {
 
     private String getConflictContent(String content, String otherContent){
         StringBuffer conflictContent = new StringBuffer();
-        conflictContent.append("<<<<<<< HEAD");
-        conflictContent.append(content);
-        conflictContent.append(otherContent);
+        conflictContent.append("<<<<<<< HEAD\n");
+        conflictContent.append(content + "\n");
+        conflictContent.append("=======\n");
+        conflictContent.append(otherContent+"\n");
         conflictContent.append(">>>>>>>");
         return conflictContent.toString();
     }
