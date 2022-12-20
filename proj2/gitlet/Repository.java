@@ -425,19 +425,19 @@ public class Repository {
 
     }
 
-    private void merge(Commit currentCommit, Commit otherCommit, Commit LCA,String givenBranchName) {
+    private void merge(Commit currentCommit, Commit otherCommit, Commit spilt,String givenBranchName) {
 
-        if (LCA.getId().equals(otherCommit.getId())) {
+        if (spilt.getId().equals(otherCommit.getId())) {
             exit("Given branch is an ancestor of the current branch.");
         }
-        if (LCA.getId().equals(currentCommit.getId())) {
+        if (spilt.getId().equals(currentCommit.getId())) {
             checkOutBranches(givenBranchName);
             exit("Current branch fast-forwarded.");
         }
         Set<String> fileNames = new HashSet<>();
         fileNames.addAll(currentCommit.getTrackedFiles().keySet());
         fileNames.addAll(otherCommit.getTrackedFiles().keySet());
-        fileNames.addAll(LCA.getTrackedFiles().keySet());
+        fileNames.addAll(spilt.getTrackedFiles().keySet());
 
         //container
         List<String> remove = new LinkedList<>();
@@ -447,40 +447,34 @@ public class Repository {
         for (String name:fileNames) {
             String currBlobId = currentCommit.getTrackedFiles().getOrDefault(name, "");
             String otherBlobId = otherCommit.getTrackedFiles().getOrDefault(name, "");
-            String ancestorId = LCA.getTrackedFiles().getOrDefault(name, "");
+            String splitId = spilt.getTrackedFiles().getOrDefault(name, "");
 
-            if (ancestorId.equals(currBlobId) && !ancestorId.equals(otherBlobId)) {
-                overwrite.add(otherBlobId);
+            if (splitId.equals("")) {
+                if (currBlobId.equals("") ) {
+                    if (!otherBlobId.equals("")) {
+                        overwrite.add(otherBlobId);
+                    }
+                }
             }
+            else {
 
-            if (currBlobId.equals(otherBlobId) || ancestorId.equals(otherBlobId)) {
-                continue;
-            }
-            if (ancestorId.equals("")) {
-                if (!otherCommit.getTrackedFiles().keySet().contains(name) &&
-                        currentCommit.getTrackedFiles().keySet().contains(name)) {
-                    continue;
+                if (splitId.equals(currBlobId) && !splitId.equals(otherBlobId)) {
+                    if (otherBlobId.equals("")) {
+                        remove.add(name);
+                    }
+                    else {
+                        overwrite.add(otherBlobId);
+                    }
                 }
-                 if (!currentCommit.getTrackedFiles().keySet().contains(name) &&
-                        otherCommit.getTrackedFiles().keySet().contains(name)) {
-                    overwrite.add(otherBlobId);
-                }
-
-            }
-            if (LCA.getTrackedFiles().keySet().contains(name)) {
-                if (ancestorId.equals(currBlobId)&& otherBlobId.equals("")) {
-                    remove.add(name);
-                }
-                if (otherBlobId.equals(ancestorId)&& currBlobId.equals("")) {
-                    continue;
+//            if (splitId.equals(otherBlobId) && !splitId.equals(currBlobId)) {
+//                continue;
+//            }
+                if (!splitId.equals(otherBlobId) && !splitId.equals(currBlobId)) {
+                    if (!currBlobId.equals(otherBlobId)) {
+                        conflicted.add(name);
+                    }
                 }
             }
-            if (!ancestorId.equals(currBlobId) && ! ancestorId.equals(otherBlobId)) {
-                if (!currBlobId.equals(otherBlobId)) {
-                    conflicted.add(name);
-                }
-            }
-
         }
         merge(remove,overwrite,conflicted,otherCommit,currentCommit);
     }
@@ -515,16 +509,29 @@ public class Repository {
                 String otherBlobId = otherCommit.getTrackedFiles().getOrDefault(name,"");
                 String currContent = readBlobAsString(currBlobId);
                 String otherContent = readBlobAsString(otherBlobId);
-                System.out.println("<<<<<<< HEAD");
-                System.out.println(currContent);
-                System.out.print("========");
-                System.out.println(otherContent);
-                System.out.print(">>>>>>>");
+//                System.out.println("<<<<<<< HEAD");
+//                System.out.println(currContent);
+//                System.out.print("========");
+//                System.out.println(otherContent);
+//                System.out.print(">>>>>>>");
+                //modify the file to have merge conflict information
+                String conflictedContent = getConflictContent(currContent,otherContent);
+                File file = join(CWD,name);
+                writeContents(file,conflictedContent);
                 exit("Encountered a merge conflict.");
 
             }
         }
 
+    }
+
+    private String getConflictContent(String content, String otherContent){
+        StringBuffer conflictContent = new StringBuffer();
+        conflictContent.append("<<<<<<< HEAD");
+        conflictContent.append(content);
+        conflictContent.append(otherContent);
+        conflictContent.append(">>>>>>>");
+        return conflictContent.toString();
     }
 
     private String readBlobAsString(String blobId) {
