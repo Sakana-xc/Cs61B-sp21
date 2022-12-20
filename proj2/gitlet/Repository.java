@@ -402,7 +402,7 @@ public class Repository {
         Commit LCA = findLatestCommonAncestor(curr,otherCommit);
 
         merge(curr,otherCommit,LCA,givenBranchName);
-        String message = "Merged" + givenBranchName + "into" + headBranchName +".";
+        String message = "Merged " + givenBranchName + " into " + headBranchName +".";
         List<Commit > parent = List.of(curr,otherCommit);
         commit(message,parent);
 
