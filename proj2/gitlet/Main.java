@@ -51,10 +51,10 @@ public class Main  {
                 new Repository().log();
                 break;
 
-            case "global-Log":
+            case "global-log":
                 Repository.checkWorkingDirectory();
                 checkNumOfArgs(args,1);
-                new Repository().global_Log();
+                new Repository().global_log();
                 break;
             case "find":
                 Repository.checkWorkingDirectory();

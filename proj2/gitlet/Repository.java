@@ -212,7 +212,7 @@ public class Repository {
 
     }
 
-    public void global_Log() {
+    public void global_log() {
         List<String> filenames = plainFilenamesIn(COMMIT_DIR);
         for (String filename : filenames) {
             Commit commit = getCommitUsingId(filename);
