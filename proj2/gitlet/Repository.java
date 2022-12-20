@@ -441,7 +441,7 @@ public class Repository {
             if (splitId.equals("")) {
                 if (currBlobId.equals("") ) {
                     if (!otherBlobId.equals("")) {
-                        overwrite.add(otherBlobId);
+                        overwrite.add(name);
                     }
                 }
             }
@@ -452,7 +452,7 @@ public class Repository {
                         remove.add(name);
                     }
                     else {
-                        overwrite.add(otherBlobId);
+                        overwrite.add(name);
                     }
                 }
 //            if (splitId.equals(otherBlobId) && !splitId.equals(currBlobId)) {
@@ -472,18 +472,16 @@ public class Repository {
                        Commit currCommit, Commit otherCommit) {
         List<String> untrackedFiles = getUntrackedFiles();
         for (String name: untrackedFiles) {
-            String blobId = otherCommit.getTrackedFiles().getOrDefault(name,"");
-            if (remove.contains(name) || overwrite.contains(blobId) ||
+            if (remove.contains(name) || overwrite.contains(name) ||
             conflicted.contains(name)) {
                 exit("There is an untracked file in the way; delete it, or add and commit it first.");
             }
         }
         if (!overwrite.isEmpty()) {
-            for (String id: overwrite) {
-                Blob blob = readBlob(id);
-                checkOutBlob(id);
-                String fileName = blob.getFilename();
-                add(fileName);
+            for (String name: overwrite) {
+                String otherBlobId = otherCommit.getTrackedFiles().getOrDefault(name,"");
+                checkOutBlob(otherBlobId);
+                add(name);
             }
         }
 
