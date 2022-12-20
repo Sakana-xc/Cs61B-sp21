@@ -359,17 +359,6 @@ public class Repository {
         if (!file.exists()) {
             exit("No commit with that id exists.");
         }
-//        Commit commit = getCommitUsingId(commitId);
-//        List<String> untrackedFiles = getUntrackedFiles();
-//        if (!untrackedFiles.isEmpty()) {
-//            for (String name : untrackedFiles) {
-//                String blobId = new Blob(name, CWD).getId();
-//                String targetId = commit.getTrackedFiles().getOrDefault(name, "");
-//                if (!blobId.equals(targetId)) {
-//                    exit("There is an untracked file in the way; delete it, or add and commit it first.");
-//                }
-//            }
-//        }
         Commit commit = getCommitUsingId(commitId);
         CheckExitErrorFileWillBeOverWritten(commit);
         resetSpace();
@@ -382,15 +371,15 @@ public class Repository {
         writeContents(join(BRANCH_HEADS_DIR, currBranchName), commitId);
     }
 
-    public void merge(String givenBranchName){
+    public void merge(String givenBranchName) {
         Stage stage = readStage();
         String headBranchName = readContentsAsString(HEAD);
-        if (!stage.isEmpty()){
+        if (!stage.isEmpty()) {
             exit("You have uncommitted changes.");
         }
 
         File branchFile = join(BRANCH_HEADS_DIR,givenBranchName);
-        if (!branchFile.exists()){
+        if (!branchFile.exists()) {
             exit("A branch with that name does not exist.");
         }
         if (givenBranchName.equals(headBranchName)) {
@@ -414,7 +403,7 @@ public class Repository {
 
     private void commit(String message, List<Commit> parent) {
         Stage stage = readStage();
-        if (stage.isEmpty()){
+        if (stage.isEmpty()) {
             exit("No changes added to the commit.");
         }
         Commit commit = new Commit(message,parent,stage);
@@ -483,8 +472,9 @@ public class Repository {
                        Commit currCommit, Commit otherCommit) {
         List<String> untrackedFiles = getUntrackedFiles();
         for (String name: untrackedFiles) {
-            if (remove.contains(name) || overwrite.contains(name) ||
-            conflicted.contains(name)){
+            String blobId = otherCommit.getTrackedFiles().getOrDefault(name,"");
+            if (remove.contains(name) || overwrite.contains(blobId) ||
+            conflicted.contains(name)) {
                 exit("There is an untracked file in the way; delete it, or add and commit it first.");
             }
         }
