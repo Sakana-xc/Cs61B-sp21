@@ -105,6 +105,7 @@ public class Main  {
                 new Repository().merge(args[1]);
                 break;
         }
+        //remote
     }
     private static void checkNumOfArgs(String [] args, Integer n){
         if(args.length != n){
