@@ -6,6 +6,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
 
+
 import static gitlet.Utils.*;
 import static gitlet.additionUtils.*;
 import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
@@ -485,7 +486,7 @@ public class Repository {
                        Commit currCommit, Commit otherCommit,String givenBranchName) {
         List<String> untrackedFiles = getUntrackedFiles();
         for (String name: untrackedFiles) {
-            String blobId = otherCommit.getTrackedFiles().getOrDefault(name,"");
+            String blobId = currCommit.getTrackedFiles().getOrDefault(name,"");
             if (remove.contains(name) || overwrite.contains(blobId) ||
             conflicted.contains(name)) {
                 exit("There is an untracked file in the way; delete it, or add and commit it first.");
@@ -518,6 +519,8 @@ public class Repository {
                 File file = join(CWD,name);
                 writeContents(file,conflictedContent);
                 System.out.println("Encountered a merge conflict.");
+
+
             }
         }
 
