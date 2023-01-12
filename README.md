@@ -1,5 +1,5 @@
 # Cs61B-sp21
- Project 2 Gitlet, a git-like version control system features all Git key functions.
+ Finished project 2 Gitlet, a git-like version control system features all Git key functions.
  
  Labs/homework/notes etc
 
