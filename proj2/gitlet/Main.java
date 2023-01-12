@@ -106,6 +106,7 @@ public class Main  {
                 break;
         }
         //remote
+        //merge error
     }
     private static void checkNumOfArgs(String [] args, Integer n){
         if(args.length != n){
