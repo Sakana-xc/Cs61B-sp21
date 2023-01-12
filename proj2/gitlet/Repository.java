@@ -199,15 +199,28 @@ public class Repository {
         if (commit == null) {
             return;
         }
-        System.out.println("===");
-        System.out.println("commit " + commit.getId());
+        // this is bad for debug
+//        System.out.println("===");
+//        System.out.println("commit " + commit.getId());
+//        List<String> parents = commit.getParents();
+//        if (parents.size() == 2) {
+//            System.out.println("Merge: " + parents.get(0).substring(0, 7) +
+//                    " " + parents.get(1).substring(0, 7));
+//        }
+//        System.out.println("Date: " + commit.dateToString());
+//        System.out.println(commit.getMessage() + "\n");
+        StringBuilder sb = new StringBuilder();
+        sb.append("===\n");
+        sb.append("commit " + commit.getId() +"\n" );
         List<String> parents = commit.getParents();
-        if (parents.size() == 2) {
-            System.out.println("Merge: " + parents.get(0).substring(0, 7) +
-                    " " + parents.get(1).substring(0, 7));
+        if(parents.size() == 2) {
+            sb.append("Merge: "+ parents.get(0).substring(0, 7) + " " +
+                    parents.get(1).substring(0, 7) + "\n");
         }
-        System.out.println("Date: " + commit.dateToString());
-        System.out.println(commit.getMessage() + "\n");
+        sb.append("Date: " + commit.dateToString() + "\n");
+        sb.append(commit.getMessage() + "\n");
+        System.out.println(sb);
+
         log(getCommitUsingId(commit.getFirstParentsId()));
 
     }
@@ -465,11 +478,11 @@ public class Repository {
                 }
             }
         }
-        merge(remove,overwrite,conflicted,otherCommit,currentCommit);
+        merge(remove,overwrite,conflicted,otherCommit,currentCommit,givenBranchName);
     }
 
     private void merge(List<String> remove, List<String> overwrite,List<String> conflicted,
-                       Commit currCommit, Commit otherCommit) {
+                       Commit currCommit, Commit otherCommit,String givenBranchName) {
         List<String> untrackedFiles = getUntrackedFiles();
         for (String name: untrackedFiles) {
             String blobId = otherCommit.getTrackedFiles().getOrDefault(name,"");
@@ -481,8 +494,10 @@ public class Repository {
         if (!overwrite.isEmpty()) {
             for (String id: overwrite) {
                 Blob blob = readBlob(id);
+                //overWrite cwd
                 checkOutBlob(id);
                 String fileName = blob.getFilename();
+                //staged
                 add(fileName);
             }
         }
@@ -502,7 +517,7 @@ public class Repository {
                 String conflictedContent = getConflictContent(currContent,otherContent);
                 File file = join(CWD,name);
                 writeContents(file,conflictedContent);
-                exit("Encountered a merge conflict.");
+                System.out.println("Encountered a merge conflict.");
             }
         }
 
@@ -556,7 +571,7 @@ public class Repository {
         return untrackedFiles;
 
     }
-
+    // bfs to track common Ancestor
     private Commit findLatestCommonAncestor(Commit head,Commit other) {
         HashSet<String> headAncestor = getHeadAncestor(head);
         Queue<Commit> otherQueue = new LinkedList<>();
@@ -574,7 +589,7 @@ public class Repository {
         }
         return null;
     }
-
+    //using  bfs to get all previous commit of head
     private HashSet<String> getHeadAncestor(Commit head) {
         HashSet<String> ancestor = new HashSet<>();
         Queue<Commit> queue = new LinkedList<>();
