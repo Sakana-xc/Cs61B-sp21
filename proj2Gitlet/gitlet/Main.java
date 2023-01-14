@@ -15,7 +15,7 @@ public class Main  {
 
         // TODO: what if args is empty?
         if (args.length == 0) {
-            exit("Please enter a command");
+            exit("Please enter a command.");
         }
         String firstArg = args[0];
 
@@ -68,7 +68,7 @@ public class Main  {
                 break;
             case "checkout":
                 if (args.length < 2 || args.length > 4){
-                    exit("Incorrect operands");
+                    exit("Incorrect operands.");
                 }
                 Repository.checkWorkingDirectory();
                 if (args.length == 3){
@@ -104,6 +104,8 @@ public class Main  {
                 checkNumOfArgs(args,2);
                 new Repository().merge(args[1]);
                 break;
+            default:
+                exit("No command with that name exists.");
         }
         //remote
         //merge error
