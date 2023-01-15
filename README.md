@@ -1,7 +1,13 @@
+## Acknowledgement
+Course taught: CS61B spring 2021 Data structures
+
+Link: https://sp21.datastructur.es/
+
+Instructor: Josh Hug (the best)
 
 # Gitlet
 
-Gilet is a git-like version control system features all local git key functions.
+Project2 Gilet is a git-like version control system features all local git key functions.
 
 I put a lot of effort in it and learned a lot through the process so I am kinda pround of it.
 
@@ -48,37 +54,12 @@ one of two states: tracked or untracked.__
 
 ## How to run
 
-__To solely clone Gitlet__
+__Compile with__
 
-```bash
-  git clone --no-checkout https://github.com/Sakana-xc/Cs61B-sp21.git
-```
-
-__Navigate into the repository directory__
-
-```bash
-  cd Cs61B-sp21/
-```
-
-__Enable the sparse checkout feature__
-
-```bash
-  git config core.sparsecheckout true
-```
-__Specify the directory you want to check out__
-
-```bash
-  echo proj2  >> .git/info/sparse-checkout
-```
-__Check out the files in the specified directory__
-```bash
-  git checkout [branch name]
-```
-__cd into proj2, compile with__
 ```bash
   gitlet/*.java
 ```
-__Now everything is set! run__
+__Everything is set! run__
 ```bash
   java gitlet.Main [command]
 ```
@@ -129,6 +110,9 @@ __Gitlet features keyfunctions of local Git__
 ```heads ```: stores branches, with branch name and a reference to commit
 
 ```HEAD```: a pointer reference current branch name if points at
+
+
+
 
 
 
