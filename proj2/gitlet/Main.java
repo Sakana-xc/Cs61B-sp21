@@ -104,6 +104,8 @@ public class Main  {
                 checkNumOfArgs(args,2);
                 new Repository().merge(args[1]);
                 break;
+            default:
+                exit("No command with that name exists.");
         }
     }
     private static void checkNumOfArgs(String [] args, Integer n){
