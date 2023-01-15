@@ -1,6 +1,8 @@
 ## Acknowledgement
 Course taught: CS61B spring 2021 Data structures
 
+Projects/labs/notes
+
 Link: https://sp21.datastructur.es/
 
 Instructor: Josh Hug (the best)
