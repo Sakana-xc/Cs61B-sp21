@@ -36,6 +36,9 @@ one of two states: tracked or untracked.__
             ```byte [] content```
 
 * __Merge__
+             
+![cs61b-141](https://user-images.githubusercontent.com/41518197/212537778-15fa67fb-5971-4733-be5e-287e5b8d83b3.jpg)
+
 
             
            
