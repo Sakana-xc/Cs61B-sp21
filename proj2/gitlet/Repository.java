@@ -485,7 +485,7 @@ public class Repository {
                        Commit currCommit, Commit otherCommit,String givenBranchName) {
         List<String> untrackedFiles = getUntrackedFiles();
         for (String name: untrackedFiles) {
-            String blobId = otherCommit.getTrackedFiles().getOrDefault(name,"");
+            String blobId = currCommit.getTrackedFiles().getOrDefault(name,"");
             if (remove.contains(name) || overwrite.contains(blobId) ||
             conflicted.contains(name)) {
                 exit("There is an untracked file in the way; delete it, or add and commit it first.");
